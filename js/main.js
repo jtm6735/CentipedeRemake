@@ -1,5 +1,5 @@
 "use strict"
-import{createMushroomSprites} from './classes.js';
+import{createMushroomSprites,createPlayerSprite} from './classes.js';
 import{getMouse} from './utilities.js';
 export{init};
 
@@ -20,10 +20,22 @@ const MyErrors = Object.freeze({
     loadLevelSwitch:"Invalid value in loadlevel switch"
 });
 
+const keyboard = Object.freeze({
+	SHIFT: 		16,
+	SPACE: 		32,
+	LEFT: 		37, 
+	UP: 		38, 
+	RIGHT: 		39, 
+	DOWN: 		40
+});
+
+const keys = [];
+
 let gameState = GameState.START;
 let imageData;
 let sprites = [];
 let currentLevel = 1;
+let player;
 let totalScore;
 let levelScore;
 let cageCount;
@@ -35,8 +47,8 @@ function init(argImageData){
 	let margin = 50;
     let rect = {left: margin, top: margin, width: screenWidth - margin*2, height: screenHeight-margin*2}
     let rectS = {left: margin, top: margin, width: screenWidth - margin*2, height: screenHeight-margin*3}
-     sprites = sprites.concat(createMushroomSprites(10,rect,"red",20),createMushroomSprites(10,rect,"green",10)
-     
+     sprites = sprites.concat(createMushroomSprites(10,rect,"red",20),createMushroomSprites(10,rect,"green",10),
+     player = createPlayerSprite(rect,"blue",10,.1)
      );
     console.log("ping");
     canvas.onmousedown = doMousedown;
@@ -63,15 +75,16 @@ function drawHUD(ctx){
     
     switch(gameState){
         case GameState.START:
+            
+            break;
+            
+        case GameState.MAIN:
             ctx.save();
             for(let s of sprites){
                 s.draw(ctx);
             }
             ctx.restore();
-            break;
-            
-        case GameState.MAIN:
-            
+            player.update(60);
             break;
             
         case GameState.GAMEOVER:
@@ -117,3 +130,39 @@ function doMousedown(e){
             throw new Error(MyErrors.mousedownSwitch);
     }
 }
+
+window.onkeyup = (e) => {
+//	console.log("keyup=" + e.keyCode);
+	
+	e.preventDefault();
+if(keys[keyboard.DOWN]||keys[keyboard.UP]){
+    player.dy=0;
+}
+if(keys[keyboard.LEFT]||keys[keyboard.RIGHT]){
+    player.dx=0;
+}
+    keys[e.keyCode] = false;
+};
+
+window.onkeydown = (e)=>{
+//	console.log("keydown=" + e.keyCode);
+	keys[e.keyCode] = true;
+	
+	// checking for other keys - ex. 'p' and 'P' for pausing
+	var char = String.fromCharCode(e.keyCode);
+	if (keys[keyboard.DOWN]){
+        player.dy=player.speed;
+    }
+    else if(keys[keyboard.UP]){
+        player.dy=-player.speed;
+    }
+
+    if(keys[keyboard.LEFT]){
+        player.dx=-player.speed;
+    }
+     else if(keys[keyboard.RIGHT]){
+        player.dx=player.speed;
+    }
+		// do something
+	
+};
