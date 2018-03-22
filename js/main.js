@@ -47,8 +47,8 @@ function init(argImageData){
 	let margin = 50;
     let rect = {left: margin, top: margin, width: screenWidth - margin*2, height: screenHeight-margin*2}
     let rectS = {left: margin, top: margin, width: screenWidth - margin*2, height: screenHeight-margin*3}
-     sprites = sprites.concat(createMushroomSprites(10,rect,"red",20),createMushroomSprites(10,rect,"green",10),
-     player = createPlayerSprite(rectS,200,200,.01,"images/centiShip.png")
+     sprites = sprites.concat(createMushroomSprites(10,rect,20,"red"),createMushroomSprites(10,rect,10,"green"),
+     player = createPlayerSprite(rectS,200,200,.1,"images/centiShip.png")
      );
     console.log("ping");
     canvas.onmousedown = doMousedown;
