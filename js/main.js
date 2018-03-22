@@ -48,7 +48,7 @@ function init(argImageData){
     let rect = {left: margin, top: margin, width: screenWidth - margin*2, height: screenHeight-margin*2}
     let rectS = {left: margin, top: margin, width: screenWidth - margin*2, height: screenHeight-margin*3}
      sprites = sprites.concat(createMushroomSprites(10,rect,"red",20),createMushroomSprites(10,rect,"green",10),
-     player = createPlayerSprite(rect,"blue",10,.1)
+     player = createPlayerSprite(rectS,200,200,.01,"images/centiShip.png")
      );
     console.log("ping");
     canvas.onmousedown = doMousedown;
@@ -75,7 +75,21 @@ function drawHUD(ctx){
     
     switch(gameState){
         case GameState.START:
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.save();
+            ctx.fillStyle = "purple";
+            ctx.rect(0,0,600,800);
+            ctx.fill();
+            ctx.restore();
+            fillText(ctx,"Centipede!",screenWidth/2, screenHeight/2-200, "36pt 'Press Start 2P', cursive", "red");
+            strokeText(ctx,"Centipede!",screenWidth/2, screenHeight/2-200, "36pt 'Press Start 2P', cursive", "white", 2);
             
+			fillText(ctx,"Press Anywhere to Start",screenWidth/2, screenHeight/2+150, "14pt 'Press Start 2P', cursive", "blue");
+            strokeText(ctx,"Press Anywhere to Start",screenWidth/2, screenHeight/2+150, "14pt 'Press Start 2P', cursive", "white",.5);
+            
+            fillText(ctx,"Use the arrow keys to move!",screenWidth/2, screenHeight/2+250, "14pt 'Press Start 2P', cursive", "blue");
+            strokeText(ctx,"Use the arrow keys to move!",screenWidth/2, screenHeight/2+250, "14pt 'Press Start 2P', cursive", "white",.5);
             break;
             
         case GameState.MAIN:
@@ -89,9 +103,15 @@ function drawHUD(ctx){
             
         case GameState.GAMEOVER:
             ctx.save();
-            ctx.fillStyle = "red";
-            ctx.rect(200,300,100,100);
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.save();
+            ctx.fillStyle = "purple";
+            ctx.rect(0,0,600,800);
             ctx.fill();
+            ctx.restore();
+            fillText(ctx,"Game over!",screenWidth/2, screenHeight/2, "36pt 'Press Start 2P', cursive", "red");
+            strokeText(ctx,"Game over!",screenWidth/2, screenHeight/2, "36pt 'Press Start 2P', cursive", "white", 2);
             ctx.restore();
             break;
             
@@ -166,3 +186,20 @@ window.onkeydown = (e)=>{
 		// do something
 	
 };
+
+function fillText(ctx,string,x,y,css,color){
+    ctx.save();
+    ctx.font = css;
+    ctx.fillStyle = color;
+    ctx.fillText(string,x,y);
+    ctx.restore();
+}
+
+function strokeText(ctx,string,x,y,css,color,lineWidth){
+    ctx.save();
+    ctx.font = css;
+    ctx.strokeStyle = color;
+    ctx.lineWidth = lineWidth;
+    ctx.strokeText(string,x,y);
+    ctx.restore();
+}

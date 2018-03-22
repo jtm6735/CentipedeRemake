@@ -33,12 +33,14 @@ class mushroom{
 }
 
 class player{
-    constructor(x,y,radius,color,speed){
+    constructor(x,y,width,height,speed,image){
         this.x=x;
         this.y=y;
-        this.radius=radius;
-        this.color=color;
+        this.width=width;
+        this.height=height;
+        //this.color=color;
         this.speed=speed;
+        this.image=image;
     	// other properties
 		this.dx = 0; // per second
 		this.dy = 0; // per second
@@ -51,18 +53,13 @@ class player{
 
        draw(ctx){
         ctx.save();
-        ctx.beginPath();
-        ctx.fillStyle=this.color;
-        ctx.arc(this.x,this.y,this.radius,0,Math.PI*2,false);
-        ctx.stroke();
-        ctx.fill();
-        ctx.closePath();
+        ctx.drawImage(this.image, this.x, this.y, this.width, this.height);
         ctx.restore();
     }
 }
 
 
-function createMushroomSprites(num,rect = {left: 0,top: 0,width: 300,height: 300},color,radius){
+function createMushroomSprites(num,rect = {left: 0,top: 0,width: 300,height: 300},radius,color){
      let sprites = [];
      for (let i = 0; i < num; i++) {
          let mushromms= new mushroom(Math.random() * rect.width + rect.left,
@@ -74,8 +71,10 @@ function createMushroomSprites(num,rect = {left: 0,top: 0,width: 300,height: 300
     return sprites;
 }
 
-function createPlayerSprite(rect={left: 0,top: 0,width: 300,height: 300},color,radius,speed){
-    let ship = new player(300,750,radius,color,speed);
+function createPlayerSprite(rect={left: 0,top: 0,width: 300,height: 300},width,height,speed,url){
+    let image = new Image();
+    image.src = url; 
+    let ship = new player(200,500,width,height,speed,image);
     return ship;
 }
 
