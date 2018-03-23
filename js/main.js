@@ -1,5 +1,5 @@
 "use strict"
-import{createMushroomSprites,createPlayerSprite} from './classes.js';
+import{createMushroomSprites,createPlayerSprite,fireBullets} from './classes.js';
 import{getMouse} from './utilities.js';
 export{init};
 
@@ -34,22 +34,29 @@ const keys = [];
 let gameState = GameState.START;
 let imageData;
 let sprites = [];
+let bullets = [];
+let bullet;
 let currentLevel = 1;
 let player;
 let totalScore;
 let levelScore;
 let cageCount;
+let margin = 50;
+let rect = {left: margin, top: margin, width: screenWidth - margin*2, height: screenHeight-margin*2}
+let rectS = {left: margin, top: margin, width: screenWidth - margin*2, height: screenHeight-margin*3}
 
 
 function init(argImageData){
     imageData = argImageData;
     loadLevel(currentLevel);
-	let margin = 50;
-    let rect = {left: margin, top: margin, width: screenWidth - margin*2, height: screenHeight-margin*2}
-    let rectS = {left: margin, top: margin, width: screenWidth - margin*2, height: screenHeight-margin*3}
-     sprites = sprites.concat(createMushroomSprites(10,rect,20,"red"),createMushroomSprites(10,rect,10,"green"),
-     player = createPlayerSprite(rectS,200,200,.1,"images/centiShip.png")
+	
+  
+   
+    player = createPlayerSprite(rectS,150,150,.1,"images/centiShip.png");
+     // bullets = createBullets(rectS,player.x, player.y, .3, "images/testBullets.png");
+     sprites = sprites.concat(createMushroomSprites(10,rect,20,"red"),createMushroomSprites(10,rect,10,"green")
      );
+    bullet = fireBullets(rectS,player.x + 50,player.y + 25, .1, "images/centiBullet.png");
     console.log("ping");
     canvas.onmousedown = doMousedown;
     loop();
@@ -72,7 +79,7 @@ function loop(timestamp){
 
 function drawHUD(ctx){
     ctx.save();
-    
+   
     switch(gameState){
         case GameState.START:
             ctx.textAlign = "center";
@@ -97,8 +104,19 @@ function drawHUD(ctx){
             for(let s of sprites){
                 s.draw(ctx);
             }
+            
+            ctx.restore();
+            player.draw(ctx);
+            ctx.save();
+            for(let x of bullets){
+                  x.draw(ctx);
+                  x.dy=-x.speed;
+                  x.update(60);
+            }
+            
             ctx.restore();
             player.update(60);
+     
             break;
             
         case GameState.GAMEOVER:
@@ -180,11 +198,19 @@ window.onkeydown = (e)=>{
     if(keys[keyboard.LEFT]){
         player.dx=-player.speed;
     }
-     else if(keys[keyboard.RIGHT]){
+    else if(keys[keyboard.RIGHT]){
         player.dx=player.speed;
     }
 		// do something
 	
+    if(keys[keyboard.SPACE]){
+       //bullets
+       // draw the bullets to the canvas
+       // move the bullets up
+       bullets.push(fireBullets(rectS,player.x + 50,player.y + 25, .1, "images/centiBullet.png"));
+        
+       console.log(bullets.length); 
+    }
 };
 
 function fillText(ctx,string,x,y,css,color){
@@ -202,4 +228,9 @@ function strokeText(ctx,string,x,y,css,color,lineWidth){
     ctx.lineWidth = lineWidth;
     ctx.strokeText(string,x,y);
     ctx.restore();
+}
+
+
+function drawShoot(xPos, yPos){
+    
 }
