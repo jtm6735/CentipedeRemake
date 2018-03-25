@@ -1,5 +1,5 @@
 "use strict"
-import{createMushroomSprites,createPlayerSprite,fireBullets} from './classes.js';
+import{createMushroomSprites,createPlayerSprite,fireBullets,createCentipede} from './classes.js';
 import{getMouse} from './utilities.js';
 export{init};
 
@@ -35,7 +35,7 @@ let gameState = GameState.START;
 let imageData;
 let sprites = [];
 let bullets = [];
-let bullet;
+let centipedes = [];
 let currentLevel = 1;
 let player;
 let totalScore;
@@ -50,13 +50,14 @@ function init(argImageData){
     imageData = argImageData;
     loadLevel(currentLevel);
 	
-  
+    for(let i=0;i<3;i++){
+         centipedes.push(createCentipede(rectS,(150-(i*40)),150, .05, "images/centipedeHeadfRight.png"));
+    }
    
     player = createPlayerSprite(rectS,150,150,.1,"images/centiShip.png");
      // bullets = createBullets(rectS,player.x, player.y, .3, "images/testBullets.png");
      sprites = sprites.concat(createMushroomSprites(10,rect,20,"red"),createMushroomSprites(10,rect,10,"green")
      );
-    bullet = fireBullets(rectS,player.x + 50,player.y + 25, .1, "images/centiBullet.png");
     console.log("ping");
     canvas.onmousedown = doMousedown;
     loop();
@@ -101,20 +102,55 @@ function drawHUD(ctx){
             
         case GameState.MAIN:
             ctx.save();
+            
             for(let s of sprites){
                 s.draw(ctx);
             }
             
             ctx.restore();
+            
+            
+            //centipede.draw(ctx);
+            
             player.draw(ctx);
             ctx.save();
             for(let x of bullets){
                   x.draw(ctx);
                   x.dy=-x.speed;
                   x.update(60);
+                if(x.y <= 0){
+                    remove(bullets,x);
+                    console.log("boundary hit");
+                }
             }
-            
             ctx.restore();
+            
+            ctx.save();
+            for(let c of centipedes){
+                c.draw(ctx);
+             
+                c.dx = c.speed;
+                console.log(c.x);
+                if(c.x+c.width+c.dx >=600){
+                    console.log("x boundary hit");
+                    c.x =490;
+                    c.y=c.y+10;
+                    c.speed = -c.speed;
+                    console.log(c.speed);
+                }
+                if(c.x+c.dx<= 0){
+                    c.x=10;
+                    c.y=c.y+10;
+                    console.log("x boundary hit");
+                    c.speed = -c.speed; 
+                }
+//                else if(c.x <= 600 || c.x >=0){
+//                    c.dx = c.speed;
+//                }
+                 c.update(60);
+                  
+            }
+            ctx.restore(); 
             player.update(60);
      
             break;
@@ -230,7 +266,8 @@ function strokeText(ctx,string,x,y,css,color,lineWidth){
     ctx.restore();
 }
 
-
-function drawShoot(xPos, yPos){
-    
+function remove(array, element){
+    const item = array.indexOf(element);
+    array.splice(item, 1);
 }
+
