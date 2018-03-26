@@ -1,6 +1,7 @@
 "use strict"
 import{createMushroomSprites,createPlayerSprite,fireBullets,createCentipede} from './classes.js';
 import{getMouse} from './utilities.js';
+import{aabbCollision} from './collision.js';
 export{init};
 
 const canvas = document.querySelector("canvas");
@@ -42,23 +43,32 @@ let totalScore;
 let levelScore;
 let cageCount;
 let margin = 50;
+let rand;
+
 let rect = {left: margin, top: margin, width: screenWidth - margin*2, height: screenHeight-margin*2}
 let rectS = {left: margin, top: margin, width: screenWidth - margin*2, height: screenHeight-margin*3}
 
 
 function init(argImageData){
+    
     imageData = argImageData;
     loadLevel(currentLevel);
 	
-    for(let i=0;i<3;i++){
-         centipedes.push(createCentipede(rectS,(150-(i*40)),150, .05, "images/centipedeHeadfRight.png"));
+    for(let i=0;i<8;i++){
+         centipedes.push(createCentipede(rectS,(300-(i*30)),150, .05, "images/centipedeHeadfRight.png"));
     }
    
     player = createPlayerSprite(rectS,150,150,.1,"images/centiShip.png");
      // bullets = createBullets(rectS,player.x, player.y, .3, "images/testBullets.png");
-     sprites = sprites.concat(createMushroomSprites(10,rect,20,"red"),createMushroomSprites(10,rect,10,"green")
-     );
-    console.log("ping");
+    for(let i=0;i<600;i+=20){
+        for(let j=0;j<600;j+=20){
+            rand = getRandom(50);
+            if(rand>45){
+               sprites.push(createMushroomSprites(rectS,i,j,20,20,"images/depressedMush.png")); 
+            }    
+        }
+    }
+     
     canvas.onmousedown = doMousedown;
     loop();
 }
@@ -120,7 +130,6 @@ function drawHUD(ctx){
                   x.update(60);
                 if(x.y <= 0){
                     remove(bullets,x);
-                    console.log("boundary hit");
                 }
             }
             ctx.restore();
@@ -132,27 +141,49 @@ function drawHUD(ctx){
                 c.dx = c.speed;
                 console.log(c.x);
                 if(c.x+c.width+c.dx >=600){
-                    console.log("x boundary hit");
+                    let reverse = new Image();
+                    reverse.src ="images/centipedeHeadfLeft.png";
                     c.x =490;
-                    c.y=c.y+10;
+                    c.y=c.y+20;
+                    if(c.speed<=.12){
+                       c.speed *= 1.08; 
+                    }
+                    
                     c.speed = -c.speed;
+                    c.image =reverse;
                     console.log(c.speed);
                 }
                 if(c.x+c.dx<= 0){
+                    let forward = new Image();
+                    forward.src="images/centipedeHeadfRight.png";
                     c.x=10;
-                    c.y=c.y+10;
-                    console.log("x boundary hit");
-                    c.speed = -c.speed; 
+                    c.y=c.y+20;
+                     if(c.speed>= -.12){
+                       c.speed *= 1.08; 
+                    }
+                     c.speed = -c.speed;
+                    c.image = forward;
                 }
-//                else if(c.x <= 600 || c.x >=0){
-//                    c.dx = c.speed;
-//                }
+                if(c.y+c.height+c.dy>=800){
+                    c.y= 20;
+                }
                  c.update(60);
                   
             }
+            for(let x of centipedes){
+                for(let y of bullets){
+                    if(aabbCollision(x.x,y.x,x.y,y.y,x.width,y.width,x.height,y.height)){
+                        remove(bullets, y);
+                        remove(centipedes, x);
+                    }
+                }
+            }
+            
             ctx.restore(); 
             player.update(60);
      
+            
+            
             break;
             
         case GameState.GAMEOVER:
@@ -243,7 +274,7 @@ window.onkeydown = (e)=>{
        //bullets
        // draw the bullets to the canvas
        // move the bullets up
-       bullets.push(fireBullets(rectS,player.x + 50,player.y + 25, .1, "images/centiBullet.png"));
+       bullets.push(fireBullets(rectS,player.x + 70,player.y + 40, .1, "images/centiBullet.png"));
         
        console.log(bullets.length); 
     }
@@ -269,5 +300,9 @@ function strokeText(ctx,string,x,y,css,color,lineWidth){
 function remove(array, element){
     const item = array.indexOf(element);
     array.splice(item, 1);
+}
+function getRandom(max){
+    return Math.floor(Math.random() * Math.floor(max));
+
 }
 
