@@ -1,28 +1,40 @@
+// 
 "use strict"
+
+// Imports the given functions from the other named js files
+// These imports only work because the imports recieve because the functions 
+// in the other files are being exported
 import{createMushroomSprites,createPlayerSprite,fireBullets,createCentipede} from './classes.js';
 import{getMouse} from './utilities.js';
 import{aabbCollision} from './collision.js';
+import{tintScreen} from './tintChange.js';
+
+// Exporting our own init function into the main.html so that
+// is ran when the window opens
 export{init};
 
+// Const variables are set, these variables will never
+// change. These variables are essentially what control
+// the properites or elements of the canvas
 const canvas = document.querySelector("canvas");
 const ctx = canvas.getContext("2d");
 const screenWidth = 600;
 const screenHeight = 800;
 
+// This const will save our game states
+// We will be able to access these GameStates 
+// later in the code
 const GameState=Object.freeze({
     START: Symbol("START"),
     MAIN: Symbol("MAIN"),
-    GAMEOVER: Symbol("GAMEOVER")
+    GAMEOVER: Symbol("GAMEOVER"),
+    PAUSED: Symbol("PAUSED")
+    
 });
 
-const MyErrors = Object.freeze({
-    drawHUDswitch: "Invalid value in drawHUD switch",
-    mousedownSwitch:"Invalid value in mousedown switch",
-    loadLevelSwitch:"Invalid value in loadlevel switch"
-});
-
+// The const will save keycodes
+// for buttons on the keyboard
 const keyboard = Object.freeze({
-	SHIFT: 		16,
 	SPACE: 		32,
 	LEFT: 		37, 
 	UP: 		38, 
@@ -32,9 +44,17 @@ const keyboard = Object.freeze({
 
 const keys = [];
 
+// These are the local variables
+// that will be used throughtout
+// the main.js
+let backgroundSound;
+let laserSound;
+let hitSound;
+let shipFire;
 let gameState = GameState.START;
+let backGroundImage = new Image();
 let imageData;
-let sprites = [];
+let mushrooms = [];
 let bullets = [];
 let centipedes = [];
 let currentLevel = 1;
@@ -44,54 +64,72 @@ let levelScore;
 let cageCount;
 let margin = 50;
 let rand;
+let counter=10;
+let delta=0;
+let lastFrameTimeMS = 0;
+let score;
+let isPaused=null;
 
+// The two, rect and rectS, will be used 
+// to check the screensize which the objects are in
 let rect = {left: margin, top: margin, width: screenWidth - margin*2, height: screenHeight-margin*2}
 let rectS = {left: margin, top: margin, width: screenWidth - margin*2, height: screenHeight-margin*3}
 
-
+// The init function is used to initialize
+// elements as soon as the window opens.
+// Information regarding the backgroundImage
+// and sound are set in the init. The init
+// is also where we create the initial centipede
+// and mushrooms in their own seperate arrays.
 function init(argImageData){
-    
+    backGroundImage.src = "images/centiBackground.png";
+    backgroundSound= new sound("audio/komiku58.mp3");   
+    laserSound = new sound("audio/laser1.wav");
+    hitSound = new sound("audio/attack_hit.mp3");
     imageData = argImageData;
-    loadLevel(currentLevel);
+    score = 0;
+    isPaused=window;
+    isPaused.onblur=paused;
+    isPaused.onfocus=play;
+    
+    
 	
-    for(let i=0;i<8;i++){
-         centipedes.push(createCentipede(rectS,(300-(i*30)),150, .05, "images/centipedeHeadfRight.png"));
+    for(let i=0;i<10;i++){
+         centipedes.push(createCentipede(rectS,(300-(i*30)),60, .3, "images/centipedeHeadfRight.png",false));
     }
    
-    player = createPlayerSprite(rectS,150,150,.1,"images/centiShip.png");
+    player = createPlayerSprite(rectS,40,40,.4,"images/centiShip.png");
      // bullets = createBullets(rectS,player.x, player.y, .3, "images/testBullets.png");
-    for(let i=0;i<600;i+=20){
-        for(let j=0;j<600;j+=20){
-            rand = getRandom(50);
-            if(rand>45){
-               sprites.push(createMushroomSprites(rectS,i,j,20,20,"images/depressedMush.png")); 
-            }    
-        }
-    }
-     
+    spawnMushrooms();
     canvas.onmousedown = doMousedown;
     loop();
 }
 
+// The loop function will run the animation
+// for the program. Because of this, the loop
+// also deals with the delta time which controls
+// the movement of the objects. Lastly, the hud is redrawn
+// in the loop so that multiple objects are not
+// repeatedly drawn on screen
 function loop(timestamp){
-//
 	requestAnimationFrame(loop);
-//	
-// draw background
-    ctx.fillRect(0,0,screenWidth,screenHeight);
-
-//	// loop through sprites
-	//for (let s of sprites){
-	//s.draw(ctx);
+    delta=timestamp-lastFrameTimeMS;
+    lastFrameTimeMS=timestamp;
     drawHUD(ctx);
-//
-// }    
-} // end for
-
-function drawHUD(ctx){
-    ctx.save();
    
+}
+
+// The function drawHUD has three different 
+// states on it which vary depending on which GameState 
+// is being accessed.
+function drawHUD(ctx){
+    
+
+    ctx.save();
     switch(gameState){
+        // In the GameState.Start, text is drawn
+        // in order to show off what the title screen
+        // is.
         case GameState.START:
             ctx.textAlign = "center";
             ctx.textBaseline = "middle";
@@ -102,91 +140,258 @@ function drawHUD(ctx){
             ctx.restore();
             fillText(ctx,"Centipede!",screenWidth/2, screenHeight/2-200, "36pt 'Press Start 2P', cursive", "red");
             strokeText(ctx,"Centipede!",screenWidth/2, screenHeight/2-200, "36pt 'Press Start 2P', cursive", "white", 2);
-            
 			fillText(ctx,"Press Anywhere to Start",screenWidth/2, screenHeight/2+150, "14pt 'Press Start 2P', cursive", "blue");
             strokeText(ctx,"Press Anywhere to Start",screenWidth/2, screenHeight/2+150, "14pt 'Press Start 2P', cursive", "white",.5);
-            
             fillText(ctx,"Use the arrow keys to move!",screenWidth/2, screenHeight/2+250, "14pt 'Press Start 2P', cursive", "blue");
             strokeText(ctx,"Use the arrow keys to move!",screenWidth/2, screenHeight/2+250, "14pt 'Press Start 2P', cursive", "white",.5);
+            fillText(ctx,"Use spacebar to shoot!",screenWidth/2, screenHeight/2+350, "14pt 'Press Start 2P', cursive", "blue");
+            strokeText(ctx,"Use spacebar to shoot!",screenWidth/2, screenHeight/2+350, "14pt 'Press Start 2P', cursive", "white",.5);
             break;
-            
+        
+        // In the GameState.Main, we will be checking
+        // the key daemons in order to have fluid motion.
+        // This is accomplished by using key daemons similar
+        // to how one would use a bool. This allows for multiple
+        // inputs to be recording at once without stuttering movement
         case GameState.MAIN:
-            ctx.save();
-            
-            for(let s of sprites){
-                s.draw(ctx);
+	       if (keys[keyboard.DOWN] /*|| char =="s" || char == "S"*/){
+                if(player.y+player.height+player.dy<=800){
+                    player.dy=player.speed;
+                }       
             }
-            
-            ctx.restore();
-            
-            
-            //centipede.draw(ctx);
-            
-            player.draw(ctx);
-            ctx.save();
-            for(let x of bullets){
-                  x.draw(ctx);
-                  x.dy=-x.speed;
-                  x.update(60);
-                if(x.y <= 0){
-                    remove(bullets,x);
+            else if(keys[keyboard.UP]/* || char =="w" || char == "W"*/){
+                if(player.y >= 600){
+                    player.dy=-player.speed; 
                 }
             }
+            else{
+                player.dy=0;        
+            }
+            if(keys[keyboard.LEFT] /*|| char =="a" || char == "A"*/){
+                if(player.x>=0){
+                    player.dx=-player.speed;  
+                }
+            }
+            else if(keys[keyboard.RIGHT] /*|| char =="d" || char == "D"*/){
+                if(player.x+player.width+player.dx<= 600){
+                    player.dx=player.speed;
+                }
+            }
+            else{
+                player.dx=0;        
+            }
+            
+            // The background image is constantly beign redrawn
+            // so that multiple images are not left on the screen
+            // where images have already passed over.
+            ctx.save();
+            ctx.drawImage(backGroundImage,-75,-90);
             ctx.restore();
             
+            ctx.save();
+            // Loading into the second screen solely
+            // The loop will make it so that the 
+            // song will loop on end.
+            backgroundSound.loop=true;
+            backgroundSound.play();
+            ctx.restore();
+            
+            // This text keeps track of the player's score
+            // in the upper left hand corner
+            fillText(ctx,"Score: " + score, 50, 30, "20pt 'Press Start 2P', cursive", "black");
+            strokeText(ctx,"Score: " + score,50, 30, "20pt 'Press Start 2P', cursive", "white", 1);
+            
+            // In the initial run of the MAIN gameState,
+            // the mushrooms are drawn onto the screen
+            ctx.save();
+            for(let m of mushrooms){
+                m.draw(ctx);
+            }
+            ctx.restore();
+            
+            // These checks are here to check if the player's
+            // avatar hits the boundaries of the box. If so,
+            // the player will bounce back in the opposite direction
+            // of which they hit the box.
+            if(player.x+player.width+player.dx>= 610){
+                player.dx = -player.speed/2;
+            }
+            if(player.x <= -10){
+                player.dx = player.speed/2;
+            }
+            if(player.y <= 580){
+                player.dy = player.speed/2;
+            }
+            if(player.y+player.height+player.dy >= 810){
+                player.dy = -player.speed/2;
+            }
+            player.draw(ctx);
+
+            // Bullets are drawn and moved
+            // in coordinance with delta time.
+            // There is a boundary check for
+            // the bullets where if they hit the top,
+            // the bullets are removed from their array
+            ctx.save();
+            for(let x of bullets){
+                x.draw(ctx);
+                x.dy=-x.speed;
+                x.update(delta);
+                    if(x.y <= 0){
+                        remove(bullets,x);
+                    }
+            }
+            ctx.restore();
+            
+            // The centipedes are drawn into an array.
+            // In these lines of code, the centipede goes
+            // through multiple checks regarding if it is
+            // hitting a wall. When the centipede hits the wall,
+            // its image is changed in order to match the new direction
+            // it is facing. The centipede also speeds up, to a certain
+            // limit whenever it hits a wall.
             ctx.save();
             for(let c of centipedes){
                 c.draw(ctx);
-             
                 c.dx = c.speed;
-                console.log(c.x);
                 if(c.x+c.width+c.dx >=600){
                     let reverse = new Image();
                     reverse.src ="images/centipedeHeadfLeft.png";
-                    c.x =490;
+                    c.x =550;
                     c.y=c.y+20;
-                    if(c.speed<=.12){
-                       c.speed *= 1.08; 
+                    if(c.speed<=.48){
+                        console.log("speed "+c.speed)
+                        c.speed *= 1.08; 
                     }
-                    
                     c.speed = -c.speed;
-                    c.image =reverse;
-                    console.log(c.speed);
+                    if(c.boolValue==false){
+                         c.image =reverse;
+                         c.boolValue=true;
+                    }
                 }
                 if(c.x+c.dx<= 0){
                     let forward = new Image();
                     forward.src="images/centipedeHeadfRight.png";
                     c.x=10;
                     c.y=c.y+20;
-                     if(c.speed>= -.12){
+                     if(c.speed>= -.48){
+                         console.log("speed "+c.speed)
                        c.speed *= 1.08; 
                     }
                      c.speed = -c.speed;
-                    c.image = forward;
+                   if(c.boolValue==true){
+                         c.image =forward;
+                        c.boolValue=false;
+                    }
                 }
                 if(c.y+c.height+c.dy>=800){
                     c.y= 20;
                 }
-                 c.update(60);
-                  
+                 c.update(delta);    
             }
+            
+            // These combined for loops check for the collision
+            // between any centipede and bullet. Using aabb collision,
+            // if any of the two objects collide with one another, both
+            // objects are removed from their respective array and a sound effect
+            // is played in order to signal the collision. A counter is used to 
+            // the number of centipedes spawned each time the array of centipedes
+            // is cleared out.
             for(let x of centipedes){
                 for(let y of bullets){
                     if(aabbCollision(x.x,y.x,x.y,y.y,x.width,y.width,x.height,y.height)){
+                        hitSound.play();
                         remove(bullets, y);
                         remove(centipedes, x);
+                        mushrooms.push(createMushroomSprites(rectS,x.x,x.y,20,20,"images/depressedMush.png"));
+                        score += 20;
+                        if(centipedes.length <= 0){
+                            spawnMushrooms();
+                            for(let i = 0; i <counter ; i++){
+                                centipedes.push(createCentipede(rectS,(300-(i*24)),60, x.speed=x.speed+.001, "images/centipedeHeadfRight.png",false));   
+                            }
+                            counter+=2
+                        } 
                     }
                 }
             }
             
+            // These combined for loops, like the prior one, checks 
+            // for aabb collision with the mushrooms and the bullets.
+            // If these objects collide, then both are destroyed and removed from
+            // their arrays. No sound effect is played then these hit.
+            for(let x of mushrooms){
+                for(let y of bullets){
+                    if(aabbCollision(x.x,y.x,x.y,y.y,x.width,y.width,x.height,y.height)){
+                        remove(bullets, y);
+                        remove(mushrooms, x);
+                    }
+                }
+            }
+            
+            // These combined for loops check for the collision between the
+            // centipedes and the mushrooms. Similar to the boundary check above,
+            // if a centipede htis a mushroom, it will turn the opposite direction it
+            // came and start moving that way. 
+            for(let x of centipedes){
+                for(let y of mushrooms){
+                    if(aabbCollision(x.x,y.x,x.y,y.y,x.width,y.width,x.height,y.height)){
+                       x.speed = -x.speed;
+                        x.y = x.y + 20;
+                        //faceImg=!faceImg;
+                        
+                        if(x.boolValue == false){
+                            let reverse = new Image();
+                            reverse.src ="images/centipedeHeadfLeft.png";
+                            x.image = reverse;
+                            x.boolValue = true;
+                        }
+                        else if(x.boolValue==true){
+                            let forward = new Image();
+                            forward.src="images/centipedeHeadfRight.png";
+                            x.image=forward;
+                            x.boolValue = false;
+                        }
+                    }
+                }
+            }
+            
+            // This for loop checks for a collision between any centipede object
+            // and the pleyer's spaceship avatar. If there is a collision,
+            // the player dies and is sent to the game over screen.
+            for (let x of centipedes){
+                if(aabbCollision(player.x,x.x,player.y,x.y,player.width,x.width,player.height,x.height)){
+                    gameState = GameState.GAMEOVER;
+                     console.log("game over");
+                }
+            }
             ctx.restore(); 
-            player.update(60);
-     
-            
-            
+            player.update(delta);
             break;
             
+        // This gameState is accesssed by clicking off the 
+        // window of the game. On this screen, the palyer will be 
+        // greeted with text saying that they are on the loading screen.
+        case GameState.PAUSED:
+            backgroundSound.stop();
+            ctx.save();
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.save();
+            ctx.fillStyle = "purple";
+            ctx.rect(0,0,600,800);
+            ctx.fill();
+            ctx.restore();
+            fillText(ctx,"Paused",screenWidth/2, screenHeight/2, "36pt 'Press Start 2P', cursive", "red");
+            strokeText(ctx,"Paused",screenWidth/2, screenHeight/2, "36pt 'Press Start 2P', cursive", "white", 2);
+            ctx.restore();
+            break;
+            
+        // This gameState is accessed when the player is hit 
+        // by a centipede. On this screen, the music stops playing
+        // and the player is given their final score.
         case GameState.GAMEOVER:
+            backgroundSound.stop();
             ctx.save();
             ctx.textAlign = "center";
             ctx.textBaseline = "middle";
@@ -197,6 +402,8 @@ function drawHUD(ctx){
             ctx.restore();
             fillText(ctx,"Game over!",screenWidth/2, screenHeight/2, "36pt 'Press Start 2P', cursive", "red");
             strokeText(ctx,"Game over!",screenWidth/2, screenHeight/2, "36pt 'Press Start 2P', cursive", "white", 2);
+            fillText(ctx,"Score: " + score, screenWidth/2, screenHeight/2 +150, "20pt 'Press Start 2P', cursive", "black");
+            strokeText(ctx,"Score: " + score,screenWidth/2, screenHeight/2 + 150, "20pt 'Press Start 2P', cursive", "white", 1);
             ctx.restore();
             break;
             
@@ -207,10 +414,7 @@ function drawHUD(ctx){
     ctx.restore();
 }
 
-function loadLevel(levelNum){
-    
-}
-
+//
 function doMousedown(e){
     console.log(e);
     let mouse=getMouse(e);
@@ -224,10 +428,14 @@ function doMousedown(e){
             break;
             
         case GameState.MAIN:
-            gameState = GameState.GAMEOVER;
+
             break;
+        case GameState.PAUSED:
             
+            break;
         case GameState.GAMEOVER:
+            
+            location.reload();
             gameState = GameState.START;
             break;
             
@@ -237,47 +445,24 @@ function doMousedown(e){
 }
 
 window.onkeyup = (e) => {
-//	console.log("keyup=" + e.keyCode);
-	
-	e.preventDefault();
-if(keys[keyboard.DOWN]||keys[keyboard.UP]){
-    player.dy=0;
-}
-if(keys[keyboard.LEFT]||keys[keyboard.RIGHT]){
-    player.dx=0;
-}
     keys[e.keyCode] = false;
+    e.preventDefault();
 };
 
 window.onkeydown = (e)=>{
+    var char = String.fromCharCode(e.keyCode);
 //	console.log("keydown=" + e.keyCode);
 	keys[e.keyCode] = true;
+     if(keys[keyboard.SPACE]){
+       laserSound.play();
+       bullets.push(fireBullets(rectS,player.x + 15,player.y- 10, .3, "images/centiBullet.png"));
+    }
+    
+    
+    
+    
 	
 	// checking for other keys - ex. 'p' and 'P' for pausing
-	var char = String.fromCharCode(e.keyCode);
-	if (keys[keyboard.DOWN]){
-        player.dy=player.speed;
-    }
-    else if(keys[keyboard.UP]){
-        player.dy=-player.speed;
-    }
-
-    if(keys[keyboard.LEFT]){
-        player.dx=-player.speed;
-    }
-    else if(keys[keyboard.RIGHT]){
-        player.dx=player.speed;
-    }
-		// do something
-	
-    if(keys[keyboard.SPACE]){
-       //bullets
-       // draw the bullets to the canvas
-       // move the bullets up
-       bullets.push(fireBullets(rectS,player.x + 70,player.y + 40, .1, "images/centiBullet.png"));
-        
-       console.log(bullets.length); 
-    }
 };
 
 function fillText(ctx,string,x,y,css,color){
@@ -304,5 +489,38 @@ function remove(array, element){
 function getRandom(max){
     return Math.floor(Math.random() * Math.floor(max));
 
+}
+
+function sound(src){
+    this.sound = document.createElement("audio");
+    this.sound.src =src;
+    this.sound.setAttribute("preload", "auto");
+    this.sound.setAttribute("controls", "none");
+    this.sound.style.display = "none";
+    document.body.appendChild(this.sound);
+    this.play=function(){
+        this.sound.play();
+    }
+    this.stop=function(){
+        this.sound.pause();
+    }
+}
+
+function paused(){
+   gameState=GameState.PAUSED;
+}
+function play(){
+    gameState=GameState.MAIN;
+}
+
+function spawnMushrooms(){
+       for(let i=60;i<560;i+=20){
+        for(let j=100;j<600;j+=20){
+            rand = getRandom(50);
+            if(rand>45){
+               mushrooms.push(createMushroomSprites(rectS,i,j,20,20,"images/depressedMush.png")); 
+            }    
+        }
+    }
 }
 

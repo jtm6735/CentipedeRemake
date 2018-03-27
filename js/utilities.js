@@ -1,4 +1,4 @@
-export {getMouse};
+export {getMouse,getRandom};
 
 function getMouse(e){
     var mouse = {};
@@ -7,3 +7,11 @@ function getMouse(e){
     console.log("used");
     return mouse;
 }
+
+function getRandom(min, max) {
+	return Math.random() * (max - min) + min;
+}
+//function findDeltaTime(timeStamp){
+//    delta=timeStamp-lastTime
+//    delta
+//}

@@ -74,7 +74,7 @@ class player extends baseSprite{
 }
 
 class centipede extends baseSprite{
-    constructor(x,y,width,height,speed,image){
+    constructor(x,y,width,height,speed,image,faceBool){
         super(x,y,width,height,speed,image);
         this.x = x;
         this.y = y;
@@ -84,6 +84,7 @@ class centipede extends baseSprite{
         this.image = image;
         this.dx = 0;
         this.dy = 0;
+        this.boolValue=faceBool;
     }
     
     update(dt){
@@ -146,17 +147,19 @@ function fireBullets(rect={left: 0,top: 0,width: 300,height: 300},x,y,speed,url)
     return bullet;
 }
 
-function createCentipede(rect={left: 0,top: 0,width: 300,height: 300}, x,y, speed, url){
+function createCentipede(rect={left: 0,top: 0,width: 300,height: 300}, x,y, speed, url,boolean){
       //let centiLoop = [];
      //for (let i = 0; i < num; i++) {
         let image = new Image();
         image.src = url;
-        let newCentipede = new baseSprite(x,y,80,55,speed,image);
+        let newCentipede = new centipede(x,y,30,20,speed,image,boolean);
         return newCentipede;
         //centiLoop.push(newCentipede);
      //}
     //return centiLoop;
 }
+
+
 
 
 
