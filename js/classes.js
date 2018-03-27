@@ -26,104 +26,87 @@ class baseSprite{
     }
 }
 
-class mushroom extends baseSprite{
-    constructor(x,y,radius,color){
-        super(x,y);
-        this.x=x;
-        this.y=y;
-        this.radius=radius;
-        this.color=color;
-    }
-        draw(ctx){
-        ctx.save();
-        ctx.beginPath();
-        ctx.fillStyle=this.color;
-        ctx.arc(this.x,this.y,this.radius,0,Math.PI*2,false);
-        ctx.stroke();
-        ctx.fill();
-        ctx.closePath();
-        ctx.restore();
-    }
-}
+// class mushroom extends baseSprite{
+//     constructor(x,y,radius,color){
+//         super(x,y);
+//         this.x=x;
+//         this.y=y;
+//         this.radius=radius;
+//         this.color=color;
+//     }
+//         draw(ctx){
+//         ctx.save();
+//         ctx.beginPath();
+//         ctx.fillStyle=this.color;
+//         ctx.arc(this.x,this.y,this.radius,0,Math.PI*2,false);
+//         ctx.stroke();
+//         ctx.fill();
+//         ctx.closePath();
+//         ctx.restore();
+//     }
+// }
 
-class player extends baseSprite{
-    constructor(x,y,width,height,speed,image){
-        super(x,y,width,height,speed,image);
-        this.x=x;
-        this.y=y;
-        this.width=width;
-        this.height=height;
-        //this.color=color;
-        this.speed=speed;
-        this.image=image;
-    	// other properties
-		this.dx = 0; // per second
-		this.dy = 0; // per second
-	}
+// class player extends baseSprite{
+//     constructor(x,y,width,height,speed,image){
+//         super(x,y,width,height,speed,image);
+//         this.x=x;
+//         this.y=y;
+//         this.width=width;
+//         this.height=height;
+//         //this.color=color;
+//         this.speed=speed;
+//         this.image=image;
+//     	// other properties
+// 		this.dx = 0; // per second
+// 		this.dy = 0; // per second
+// 	}
 	
-	update(dt){
-		this.x += this.dx * dt;
-		this.y += this.dy * dt;
-	}
+// 	update(dt){
+// 		this.x += this.dx * dt;
+// 		this.y += this.dy * dt;
+// 	}
 
-       draw(ctx){
-        ctx.save();
-        ctx.drawImage(this.image, this.x, this.y, this.width, this.height);
-        ctx.restore();
-    }
-}
+//        draw(ctx){
+//         ctx.save();
+//         ctx.drawImage(this.image, this.x, this.y, this.width, this.height);
+//         ctx.restore();
+//     }
+// }
 
 class centipede extends baseSprite{
     constructor(x,y,width,height,speed,image,faceBool){
         super(x,y,width,height,speed,image);
-        this.x = x;
-        this.y = y;
-        this.width = width;
-        this.height = height;
-        this.speed = speed;
-        this.image = image;
         this.dx = 0;
         this.dy = 0;
         this.boolValue=faceBool;
     }
-    
-    update(dt){
-        this.x += this.dx * dt;
-        this.y += this.dy * dt;
-    }
-    
-    draw(ctx){
-        ctx.save();
-        ctx.drawImage(this.image, this.x, this.y, this.width, this.height);
-        ctx.restore();
-    }
 }
 
-class bullets extends baseSprite{
-    constructor(x,y,width,height,speed,image){
-        super(x,y,width,height,speed,image);
-        this.x=x;
-        this.y=y;
-        this.width=width;
-        this.height=height;
-        //this.color=color;
-        this.speed=speed;
-        this.image=image;
-    	// other properties
-		this.dx = 0; // per second
-        this.dy = 0; // per second 
-    }
-    update(dt){
-		this.x += this.dx * dt;
-		this.y += this.dy * dt;
-    }
-    draw(ctx){
-        ctx.save();
-        ctx.drawImage(this.image, this.x, this.y, this.width, this.height);
-        ctx.restore();
-    }
+// class bullets extends baseSprite{
+//     constructor(x,y,width,height,speed,image){
+//         super(x,y,width,height,speed,image);
+//         this.x=x;
+//         this.y=y;
+//         this.width=width;
+//         this.height=height;
+//         //this.color=color;
+//         this.speed=speed;
+//         this.image=image;
+//     	// other properties
+// 		this.dx = 0; // per second
+//         this.dy = 0; // per second 
+//     }
+//     update(dt){
+// 		this.x += this.dx * dt;
+// 		this.y += this.dy * dt;
+//     }
+//     draw(ctx){
+//         ctx.save();
+//         ctx.drawImage(this.image, this.x, this.y, this.width, this.height);
+//         ctx.restore();
+//     }
     
-}
+// }
 
 
 function createMushroomSprites(rect = {left: 0,top: 0,width: 300,height: 300},x,y,width,height,url){
