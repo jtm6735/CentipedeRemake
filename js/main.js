@@ -71,8 +71,8 @@ let isPaused=null;
 
 // The two, rect and rectS, will be used 
 // to check the screensize which the objects are in.
-let rect = {left: margin, top: margin, width: screenWidth - margin*2, height: screenHeight-margin*2}
-let rectS = {left: margin, top: margin, width: screenWidth - margin*2, height: screenHeight-margin*3}
+let rect = {left: margin, top: margin, width: screenWidth - margin*2, height: screenHeight-margin*2};
+let rectS = {left: margin, top: margin, width: screenWidth - margin*2, height: screenHeight-margin*3};
 
 // The init function is used to initialize
 // elements as soon as the window opens.
@@ -130,7 +130,6 @@ function loop(timestamp){
 // states on it which vary depending on which GameState 
 // is being accessed.
 function drawHUD(ctx){
-    
 
     ctx.save();
     switch(gameState){
@@ -138,6 +137,8 @@ function drawHUD(ctx){
         // in order to show off what the title screen
         // is.
         case GameState.START:
+            ctx.shadowColor = "black";
+            ctx.shadowBlur = 15;
             ctx.textAlign = "center";
             ctx.textBaseline = "middle";
             ctx.save();
@@ -147,6 +148,8 @@ function drawHUD(ctx){
             ctx.restore();
             fillText(ctx,"Centipede!",screenWidth/2, screenHeight/2-200, "36pt 'Press Start 2P', cursive", "red");
             strokeText(ctx,"Centipede!",screenWidth/2, screenHeight/2-200, "36pt 'Press Start 2P', cursive", "white", 2);
+            fillText(ctx,"By Jason M. and Zach H.",screenWidth/2, screenHeight/2, "18pt 'Press Start 2P', cursive", "red");
+            strokeText(ctx,"By Jason M. and Zach H.",screenWidth/2, screenHeight/2, "18pt 'Press Start 2P', cursive", "white", .5);
 			fillText(ctx,"Press Anywhere to Start",screenWidth/2, screenHeight/2+150, "14pt 'Press Start 2P', cursive", "blue");
             strokeText(ctx,"Press Anywhere to Start",screenWidth/2, screenHeight/2+150, "14pt 'Press Start 2P', cursive", "white",.5);
             fillText(ctx,"Use the arrow keys to move!",screenWidth/2, screenHeight/2+250, "14pt 'Press Start 2P', cursive", "blue");
@@ -161,12 +164,14 @@ function drawHUD(ctx){
         // to how one would use a bool. This allows for multiple
         // inputs to be recording at once without stuttering movement
         case GameState.MAIN:
-	       if (keys[keyboard.DOWN] /*|| char =="s" || char == "S"*/){
+           ctx.shadowColor = "black";
+           ctx.shadowBlur = 5;
+	       if (keys[keyboard.DOWN]){
                 if(player.y+player.height+player.dy<=800){
                     player.dy=player.speed;
                 }       
             }
-            else if(keys[keyboard.UP]/* || char =="w" || char == "W"*/){
+            else if(keys[keyboard.UP]){
                 if(player.y >= 600){
                     player.dy=-player.speed; 
                 }
@@ -174,12 +179,12 @@ function drawHUD(ctx){
             else{
                 player.dy=0;        
             }
-            if(keys[keyboard.LEFT] /*|| char =="a" || char == "A"*/){
+            if(keys[keyboard.LEFT]){
                 if(player.x>=0){
                     player.dx=-player.speed;  
                 }
             }
-            else if(keys[keyboard.RIGHT] /*|| char =="d" || char == "D"*/){
+            else if(keys[keyboard.RIGHT]){
                 if(player.x+player.width+player.dx<= 600){
                     player.dx=player.speed;
                 }
@@ -267,7 +272,6 @@ function drawHUD(ctx){
                     c.x =550;
                     c.y=c.y+20;
                     if(c.speed<=.48){
-                        console.log("speed "+c.speed)
                         c.speed *= 1.08; 
                     }
                     c.speed = -c.speed;
@@ -281,20 +285,19 @@ function drawHUD(ctx){
                     forward.src="images/centipedeHeadfRight.png";
                     c.x=10;
                     c.y=c.y+20;
-                     if(c.speed>= -.48){
-                         console.log("speed "+c.speed)
-                       c.speed *= 1.08; 
+                    if(c.speed>= -.48){
+                        c.speed *= 1.08; 
                     }
-                     c.speed = -c.speed;
-                   if(c.boolValue==true){
-                         c.image =forward;
+                    c.speed = -c.speed;
+                    if(c.boolValue==true){
+                        c.image =forward;
                         c.boolValue=false;
                     }
                 }
                 if(c.y+c.height+c.dy>=800){
                     c.y= 20;
                 }
-                 c.update(delta);    
+                c.update(delta);    
             }
             
             // These combined for loops check for the collision
@@ -317,7 +320,7 @@ function drawHUD(ctx){
                             for(let i = 0; i <counter ; i++){
                                 centipedes.push(createCentipede(rectS,(300-(i*24)),60, x.speed=x.speed+.001, "images/centipedeHeadfRight.png",false));   
                             }
-                            counter+=2
+                            counter+=2;
                         } 
                     }
                 }
@@ -343,10 +346,8 @@ function drawHUD(ctx){
             for(let x of centipedes){
                 for(let y of mushrooms){
                     if(aabbCollision(x.x,y.x,x.y,y.y,x.width,y.width,x.height,y.height)){
-                       x.speed = -x.speed;
+                        x.speed = -x.speed;
                         x.y = x.y + 20;
-                        //faceImg=!faceImg;
-                        
                         if(x.boolValue == false){
                             let reverse = new Image();
                             reverse.src ="images/centipedeHeadfLeft.png";
@@ -369,7 +370,6 @@ function drawHUD(ctx){
             for (let x of centipedes){
                 if(aabbCollision(player.x,x.x,player.y,x.y,player.width,x.width,player.height,x.height)){
                     gameState = GameState.GAMEOVER;
-                     console.log("game over");
                 }
             }
             ctx.restore(); 
@@ -380,6 +380,8 @@ function drawHUD(ctx){
         // window of the game. On this screen, the palyer will be 
         // greeted with text saying that they are on the loading screen.
         case GameState.PAUSED:
+            ctx.shadowColor = "black";
+            ctx.shadowBlur = 15;
             backgroundSound.stop();
             ctx.save();
             ctx.textAlign = "center";
@@ -407,11 +409,13 @@ function drawHUD(ctx){
             ctx.rect(0,0,600,800);
             ctx.fill();
             ctx.restore();
+            ctx.shadowColor = "black";
+            ctx.shadowBlur = 15;
             fillText(ctx,"Game over!",screenWidth/2, screenHeight/2, "36pt 'Press Start 2P', cursive", "red");
             strokeText(ctx,"Game over!",screenWidth/2, screenHeight/2, "36pt 'Press Start 2P', cursive", "white", 2);
             fillText(ctx,"Score: " + score, screenWidth/2, screenHeight/2 +150, "20pt 'Press Start 2P', cursive", "black");
             strokeText(ctx,"Score: " + score,screenWidth/2, screenHeight/2 + 150, "20pt 'Press Start 2P', cursive", "white", 1);
-            ctx.restore();
+            restore();
             break;
             
         default:
@@ -425,16 +429,13 @@ function drawHUD(ctx){
 // will be processed depending on what 
 // gameState is being used
 function doMousedown(e){
-    console.log(e);
     let mouse=getMouse(e);
-    console.log('canvas coordinates: x=${mouse.x} y=${mouse.y}');
     switch(gameState){
         // In the GameState.Start, a mouse click
         // will advance the screen to the main
         // gameplay screen.
         case GameState.START:
             gameState = GameState.MAIN;
-            console.log(gameState);
             break;
             
         // Clicking the screen in the main state
@@ -478,9 +479,9 @@ window.onkeyup = (e) => {
 window.onkeydown = (e)=>{
     var char = String.fromCharCode(e.keyCode);
 	keys[e.keyCode] = true;
-     if(keys[keyboard.SPACE]){
-       laserSound.play();
-       bullets.push(fireBullets(rectS,player.x + 15,player.y- 10, .3, "images/centiBullet.png"));
+    if(keys[keyboard.SPACE]){
+        laserSound.play();
+        bullets.push(fireBullets(rectS,player.x + 15,player.y- 10, .3, "images/centiBullet.png"));
     }
 };
 
@@ -551,7 +552,7 @@ function sound(source){
 // window will put the player back in
 // the main gameState.
 function paused(){
-   gameState=GameState.PAUSED;
+    gameState=GameState.PAUSED;
 }
 function play(){
     gameState=GameState.MAIN;
@@ -563,11 +564,11 @@ function play(){
 // is used to determine if a mushroom is 
 // spawned in a given point on the screen.
 function spawnMushrooms(){
-       for(let i=60;i<560;i+=20){
+    for(let i=60;i<560;i+=20){
         for(let j=100;j<600;j+=20){
             rand = getRandom(50);
             if(rand>45){
-               mushrooms.push(createMushroomSprites(rectS,i,j,20,20,"images/depressedMush.png")); 
+                mushrooms.push(createMushroomSprites(rectS,i,j,20,20,"images/depressedMush.png")); 
             }    
         }
     }

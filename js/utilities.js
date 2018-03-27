@@ -1,4 +1,4 @@
-export {getMouse,getRandom};
+export {getMouse};
 
 // This function will return the mouse's
 // position on the page. The mouse is recorded
