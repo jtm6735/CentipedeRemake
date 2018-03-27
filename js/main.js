@@ -3,11 +3,10 @@
 
 // Imports the given functions from the other named js files
 // These imports only work because the imports recieve because the functions 
-// in the other files are being exported
+// in the other files are being exported.
 import{createMushroomSprites,createPlayerSprite,fireBullets,createCentipede} from './classes.js';
 import{getMouse} from './utilities.js';
 import{aabbCollision} from './collision.js';
-import{tintScreen} from './tintChange.js';
 
 // Exporting our own init function into the main.html so that
 // is ran when the window opens
@@ -15,7 +14,7 @@ export{init};
 
 // Const variables are set, these variables will never
 // change. These variables are essentially what control
-// the properites or elements of the canvas
+// the properites or elements of the canvas.
 const canvas = document.querySelector("canvas");
 const ctx = canvas.getContext("2d");
 const screenWidth = 600;
@@ -23,7 +22,7 @@ const screenHeight = 800;
 
 // This const will save our game states
 // We will be able to access these GameStates 
-// later in the code
+// later in the code.
 const GameState=Object.freeze({
     START: Symbol("START"),
     MAIN: Symbol("MAIN"),
@@ -33,7 +32,7 @@ const GameState=Object.freeze({
 });
 
 // The const will save keycodes
-// for buttons on the keyboard
+// for buttons on the keyboard.
 const keyboard = Object.freeze({
 	SPACE: 		32,
 	LEFT: 		37, 
@@ -46,7 +45,7 @@ const keys = [];
 
 // These are the local variables
 // that will be used throughtout
-// the main.js
+// the main.js.
 let backgroundSound;
 let laserSound;
 let hitSound;
@@ -71,7 +70,7 @@ let score;
 let isPaused=null;
 
 // The two, rect and rectS, will be used 
-// to check the screensize which the objects are in
+// to check the screensize which the objects are in.
 let rect = {left: margin, top: margin, width: screenWidth - margin*2, height: screenHeight-margin*2}
 let rectS = {left: margin, top: margin, width: screenWidth - margin*2, height: screenHeight-margin*3}
 
@@ -93,14 +92,22 @@ function init(argImageData){
     isPaused.onfocus=play;
     
     
-	
+    // Spawns an intial ten centipedes
+    // into the game using [i] to position
+    // them in a line.
     for(let i=0;i<10;i++){
          centipedes.push(createCentipede(rectS,(300-(i*30)),60, .3, "images/centipedeHeadfRight.png",false));
     }
    
+    // This will set the player to have a create using the
+    // parameters given in the function
     player = createPlayerSprite(rectS,40,40,.4,"images/centiShip.png");
-     // bullets = createBullets(rectS,player.x, player.y, .3, "images/testBullets.png");
+    
+    // Spawns the initial set of mushrooms.
     spawnMushrooms();
+
+    // Enables the canvas to be clickable
+    // with the doMousedown.
     canvas.onmousedown = doMousedown;
     loop();
 }
@@ -414,27 +421,37 @@ function drawHUD(ctx){
     ctx.restore();
 }
 
-//
+// When the mouse is clicked, an action 
+// will be processed depending on what 
+// gameState is being used
 function doMousedown(e){
     console.log(e);
     let mouse=getMouse(e);
     console.log('canvas coordinates: x=${mouse.x} y=${mouse.y}');
     switch(gameState){
+        // In the GameState.Start, a mouse click
+        // will advance the screen to the main
+        // gameplay screen.
         case GameState.START:
-            currentLevel = 1;
             gameState = GameState.MAIN;
-            loadLevel(currentLevel);
             console.log(gameState);
             break;
             
+        // Clicking the screen in the main state
+        // will not do anything.    
         case GameState.MAIN:
+            break;
 
-            break;
+        // Clicking the screen in the paused state
+        // will not do anything.  
         case GameState.PAUSED:
-            
             break;
+
+        // In the gameOver state, the player has one option.
+        // This option is to click the screen in order
+        // to advance. Doing this will put the user back
+        // on the title screen of the game.
         case GameState.GAMEOVER:
-            
             location.reload();
             gameState = GameState.START;
             break;
@@ -444,27 +461,33 @@ function doMousedown(e){
     }
 }
 
+// When a key is released and goes up,
+// this eventListener makes sure that the
+// action performed by the key is no longer
+// being used.
 window.onkeyup = (e) => {
     keys[e.keyCode] = false;
     e.preventDefault();
 };
 
+// This event listener will check for when the 
+// spacebar is pressed. When the space bar
+// is pressed, a laser noise will play and a
+// bullet will be added to the array and fire out
+// of the ship.
 window.onkeydown = (e)=>{
     var char = String.fromCharCode(e.keyCode);
-//	console.log("keydown=" + e.keyCode);
 	keys[e.keyCode] = true;
      if(keys[keyboard.SPACE]){
        laserSound.play();
        bullets.push(fireBullets(rectS,player.x + 15,player.y- 10, .3, "images/centiBullet.png"));
     }
-    
-    
-    
-    
-	
-	// checking for other keys - ex. 'p' and 'P' for pausing
 };
 
+// This function will be used to write 
+// text along the canvas when needed.
+// The parameters passed in will be used
+// to set the settings of the text.
 function fillText(ctx,string,x,y,css,color){
     ctx.save();
     ctx.font = css;
@@ -473,6 +496,11 @@ function fillText(ctx,string,x,y,css,color){
     ctx.restore();
 }
 
+// This function acts as a follow up 
+// to the fillText function. The text
+// made in this function will act as 
+// the stroke to the text written in
+// the fillText function.
 function strokeText(ctx,string,x,y,css,color,lineWidth){
     ctx.save();
     ctx.font = css;
@@ -482,21 +510,29 @@ function strokeText(ctx,string,x,y,css,color,lineWidth){
     ctx.restore();
 }
 
+// This funciton is called in order to
+// remove an object from an array. This 
+// function will be called during
+// the collision checks
 function remove(array, element){
     const item = array.indexOf(element);
     array.splice(item, 1);
 }
+
+// This function is used to get a random
+// number using a given parameter
+// as a maximum number for generation
 function getRandom(max){
     return Math.floor(Math.random() * Math.floor(max));
-
 }
 
-function sound(src){
+// This function gives information in order
+// for sound to be played. Within this function,
+// the song is given two more functions, play
+// and stop.
+function sound(source){
     this.sound = document.createElement("audio");
-    this.sound.src =src;
-    this.sound.setAttribute("preload", "auto");
-    this.sound.setAttribute("controls", "none");
-    this.sound.style.display = "none";
+    this.sound.src =source;
     document.body.appendChild(this.sound);
     this.play=function(){
         this.sound.play();
@@ -506,6 +542,14 @@ function sound(src){
     }
 }
 
+// The paused and play functions are
+// to be used in accordinance with
+// when the player clicks on and off
+// of the window. Clicking off the
+// window will lead the user to the
+// gameState while clicking back on the
+// window will put the player back in
+// the main gameState.
 function paused(){
    gameState=GameState.PAUSED;
 }
@@ -513,6 +557,11 @@ function play(){
     gameState=GameState.MAIN;
 }
 
+// This function runs a two dimensional
+// for loop in order to spawn mushrooms
+// in a grid like fashion. A random number
+// is used to determine if a mushroom is 
+// spawned in a given point on the screen.
 function spawnMushrooms(){
        for(let i=60;i<560;i+=20){
         for(let j=100;j<600;j+=20){
@@ -523,4 +572,3 @@ function spawnMushrooms(){
         }
     }
 }
-
